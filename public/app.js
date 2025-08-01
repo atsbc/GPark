@@ -5,14 +5,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (HTML, CSS, JS)
+// Serve frontend files (adjust if needed)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Admin routes
 const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
 
-// Basic home route
+// Home route (optional)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -23,6 +22,4 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`GPark server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`GPark running on port ${PORT}`));
