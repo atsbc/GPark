@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPark Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>GPark Admin Dashboard</h1>
+  <button id="logoutBtn" style="background:#CE0000;color:#fff;padding:10px;border:none;border-radius:5px;cursor:pointer;margin-bottom:20px;">
+    Logout
+  </button>
+  <table border="1" cellpadding="10" cellspacing="0" style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>Parking Spot</th>
+        <th>Duration (minutes)</th>
+        <th>License Plate</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody id="bookingList">
+      <tr><td colspan="4">Loading bookings...</td></tr>
+    </tbody>
+  </table>
+
+<script>
+  async function fetchBookings() {
+    try {
+      const res = await fetch('/admin/bookings');
+      if (!res.ok) throw new Error('Unauthorized');
+      const bookings = await res.json();
+      const tbody = document.getElementById('bookingList');
+      if (bookings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">No bookings found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = bookings.map(b => `
+        <tr>
+          <td>${b.parkingSpotId}</td>
+          <td>${b.duration}</td>
+          <td>${b.licensePlate}</td>
+          <td>${new Date(b.timestamp).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      document.getElementById('bookingList').innerHTML = '<tr><td colspan="4">Failed to load bookings</td></tr>';
+    }
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/admin/logout', { method: 'POST' });
+    window.location.href = '/admin-login.html';
+  });
+
+  fetchBookings();
+</script>
+</body>
+</html>
