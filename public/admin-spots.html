@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GPark Admin - Manage Spots</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Manage Parking Spots</h1>
+  <button id="logoutBtn">Logout</button>
+
+  <form id="addSpotForm" style="margin-top: 1rem; margin-bottom: 2rem;">
+    <input
+      type="text"
+      id="newSpotId"
+      placeholder="Enter new spot ID"
+      required
+      style="padding: 0.5rem; font-size: 1rem; width: 150px;"
+    />
+    <button type="submit">Add Spot</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Spot ID</th>
+        <th>Active</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="spotsList">
+      <tr><td colspan="3">Loading spots...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function fetchSpots() {
+      try {
+        const res = await fetch('/admin/spots');
+        if (!res.ok) throw new Error('Unauthorized');
+        const spots = await res.json();
+        const tbody = document.getElementById('spotsList');
+        if (spots.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3">No spots found</td></tr>';
+          return;
+        }
+        tbody.innerHTML = spots
+          .map(
+            (spot, idx) => `
+          <tr data-id="${spot.id}">
+            <td>${spot.id}</td>
+            <td>
+              <input type="checkbox" class="activeCheckbox" ${
+                spot.active ? 'checked' : ''
+              } />
+            </td>
+            <td>
+              <button class="deleteBtn" style="background:#CE0000;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">
+                Delete
+              </button>
+            </td>
+          </tr>`
+          )
+          .join('');
+
+        document.querySelectorAll('.activeCheckbox').forEach((checkbox, i) => {
+          checkbox.addEventListener('change', () => toggleActive(spots[i].id, checkbox.checked));
+        });
+
+        document.querySelectorAll('.deleteBtn').forEach((btn, i) => {
+          btn.addEventListener('click', () => deleteSpot(spots[i].id));
+        });
+      } catch (err) {
+        document.getElementById('spotsList').innerHTML =
+          '<tr><td colspan="3">Failed to load spots</td></tr>';
+      }
+    }
+
+    async function toggleActive(id, isActive) {
+      try {
+        const res = await fetch(`/admin/spots/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: isActive }),
+        });
+        if (!res.ok) throw new Error('Failed to update spot');
+      } catch (err) {
+        alert('Error updating spot status');
+        fetchSpots();
+      }
+    }
+
+    async function deleteSpot(id) {
+      if (!confirm(`Delete spot ${id}?`)) return;
+      try {
+        const res = await fetch(`/admin/spots/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete spot');
+        fetchSpots();
+      } catch (err) {
+        alert('Error deleting spot');
+      }
+    }
+
+    document.getElementById('addSpotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newSpotId = document.getElementById('newSpotId').value.trim();
+      if (!newSpotId) return alert('Please enter spot ID');
+      try {
+        const res = await fetch('/admin/spots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: newSpotId }),
+        });
+        if (!res.ok) {
+          const error = await res.json();
+          alert(error.error || 'Failed to add spot');
+          return;
+        }
+        document.getElementById('newSpotId').value = '';
+        fetchSpots();
+      } catch (err) {
+        alert('Error adding spot');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/admin/logout', { method: 'POST' });
+      window.location.href = '/admin-login.html';
+    });
+
+    fetchSpots();
+  </script>
+</body>
+</html>
