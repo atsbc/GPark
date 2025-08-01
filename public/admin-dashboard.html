@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>GPark Admin Panel</title>
+  <title>GPark Admin Dashboard</title>
   <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
@@ -18,11 +18,13 @@
     </aside>
 
     <main class="main-content">
+      <!-- Dashboard -->
       <section id="dashboard" class="section active">
         <h1>Welcome, Admin</h1>
-        <p>Select an option from the left menu.</p>
+        <p>Use the left menu to manage GPark bookings and spots.</p>
       </section>
 
+      <!-- Bookings -->
       <section id="bookings" class="section">
         <h1>Active Bookings</h1>
         <table id="bookingsTable">
@@ -40,17 +42,19 @@
         </table>
       </section>
 
+      <!-- Manage Spots -->
       <section id="spots" class="section">
         <h1>Manage Parking Spots</h1>
+
         <form id="addSpotForm">
           <input type="text" id="newSpotId" placeholder="New Spot ID" required />
           <button type="submit">Add Spot</button>
         </form>
 
         <div class="bulk-actions">
-          <button id="activateSelected" class="bulkBtn">Activate Selected</button>
-          <button id="deactivateSelected" class="bulkBtn">Deactivate Selected</button>
-          <button id="deleteSelected" class="bulkBtn delete">Delete Selected</button>
+          <button id="activateSelected" class="bulkBtn">Activate</button>
+          <button id="deactivateSelected" class="bulkBtn">Deactivate</button>
+          <button id="deleteSelected" class="bulkBtn delete">Delete</button>
         </div>
 
         <table>
@@ -58,7 +62,7 @@
             <tr>
               <th><input type="checkbox" id="selectAll" /></th>
               <th>Spot ID</th>
-              <th>Active</th>
+              <th>Status</th>
               <th>Rates</th>
             </tr>
           </thead>
