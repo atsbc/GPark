@@ -2,91 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GPark Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>GPark Admin Panel</title>
+  <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
-  <h1>GPark Admin Dashboard</h1>
-  <button id="logoutBtn">Logout</button>
+  <div class="admin-container">
+    <aside class="sidebar">
+      <h2>GPark</h2>
+      <ul id="nav">
+        <li class="active" data-section="dashboard">Dashboard</li>
+        <li data-section="bookings">Bookings</li>
+        <li data-section="spots">Manage Spots</li>
+        <li id="logoutBtn">Logout</li>
+      </ul>
+    </aside>
 
-  <p><a href="/admin-spots.html" style="color:#CE0000;">Manage Parking Spots</a></p>
+    <main class="main-content">
+      <section id="dashboard" class="section active">
+        <h1>Welcome, Admin</h1>
+        <p>Select an option from the left menu.</p>
+      </section>
 
+      <section id="bookings" class="section">
+        <h1>Active Bookings</h1>
+        <table id="bookingsTable">
+          <thead>
+            <tr>
+              <th>Spot</th>
+              <th>License</th>
+              <th>Duration</th>
+              <th>Time Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </section>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Parking Spot</th>
-        <th>Duration (minutes)</th>
-        <th>License Plate</th>
-        <th>Start Time</th>
-        <th>Time Left</th>
-      </tr>
-    </thead>
-    <tbody id="bookingList">
-      <tr><td colspan="5">Loading bookings...</td></tr>
-    </tbody>
-  </table>
+      <section id="spots" class="section">
+        <h1>Manage Parking Spots</h1>
+        <form id="addSpotForm">
+          <input type="text" id="newSpotId" placeholder="New Spot ID" required />
+          <button type="submit">Add Spot</button>
+        </form>
 
-  <script>
-    function formatDurationLeft(msLeft) {
-      if (msLeft <= 0) return 'Expired';
-      const totalMinutes = Math.floor(msLeft / (1000 * 60));
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      if (hours > 0) {
-        return `${hours}h ${minutes}m left`;
-      }
-      return `${minutes}m left`;
-    }
+        <div class="bulk-actions">
+          <button id="activateSelected" class="bulkBtn">Activate Selected</button>
+          <button id="deactivateSelected" class="bulkBtn">Deactivate Selected</button>
+          <button id="deleteSelected" class="bulkBtn delete">Delete Selected</button>
+        </div>
 
-    async function fetchBookings() {
-      try {
-        const res = await fetch('/admin/bookings');
-        if (!res.ok) throw new Error('Unauthorized');
-        const bookings = await res.json();
-        const tbody = document.getElementById('bookingList');
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAll" /></th>
+              <th>Spot ID</th>
+              <th>Active</th>
+            </tr>
+          </thead>
+          <tbody id="spotsList">
+            <tr><td colspan="3">Loading...</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 
-        if (bookings.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5">No bookings found</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = bookings.map((b, idx) => `
-          <tr data-index="${idx}">
-            <td>${b.parkingSpotId}</td>
-            <td>${b.duration}</td>
-            <td>${b.licensePlate}</td>
-            <td>${new Date(b.timestamp).toLocaleString()}</td>
-            <td class="timer" id="timer-${idx}">Loading...</td>
-          </tr>
-        `).join('');
-
-        updateTimers(bookings);
-        setInterval(() => updateTimers(bookings), 60000); // every minute
-      } catch (err) {
-        document.getElementById('bookingList').innerHTML = '<tr><td colspan="5">Failed to load bookings</td></tr>';
-      }
-    }
-
-    function updateTimers(bookings) {
-      const now = Date.now();
-      bookings.forEach((booking, idx) => {
-        const endTime = booking.timestamp + booking.duration * 60 * 1000;
-        const msLeft = endTime - now;
-        const timerEl = document.getElementById(`timer-${idx}`);
-        if (timerEl) {
-          timerEl.textContent = formatDurationLeft(msLeft);
-        }
-      });
-    }
-
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await fetch('/admin/logout', { method: 'POST' });
-      window.location.href = '/admin-login.html';
-    });
-
-    fetchBookings();
-  </script>
+  <script src="js/admin.js"></script>
 </body>
 </html>
