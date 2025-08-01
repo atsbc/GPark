@@ -4,8 +4,17 @@ const fs = require('fs');
 const path = require('path');
 
 const spotsPath = path.join(__dirname, '../data/spots.json');
-let parkingSpots = require(spotsPath);
 
+let parkingSpots = [];
+
+// Load or create spots.json
+if (fs.existsSync(spotsPath)) {
+  parkingSpots = require(spotsPath);
+} else {
+  fs.writeFileSync(spotsPath, JSON.stringify(parkingSpots, null, 2));
+}
+
+// Save spots helper
 function saveSpots() {
   fs.writeFileSync(spotsPath, JSON.stringify(parkingSpots, null, 2));
 }
