@@ -9,23 +9,23 @@
   <h1>Manage Parking Spots</h1>
   <button id="logoutBtn">Logout</button>
 
-  <form id="addSpotForm" style="margin-top: 1rem; margin-bottom: 2rem;">
-    <input
-      type="text"
-      id="newSpotId"
-      placeholder="Enter new spot ID"
-      required
-      style="padding: 0.5rem; font-size: 1rem; width: 150px;"
-    />
+  <form id="addSpotForm">
+    <input type="text" id="newSpotId" placeholder="Enter new spot ID" required />
     <button type="submit">Add Spot</button>
   </form>
+
+  <div style="margin: 1rem 0;">
+    <button id="activateSelected" class="bulkBtn">Activate Selected</button>
+    <button id="deactivateSelected" class="bulkBtn">Deactivate Selected</button>
+    <button id="deleteSelected" class="bulkBtn delete">Delete Selected</button>
+  </div>
 
   <table>
     <thead>
       <tr>
+        <th><input type="checkbox" id="selectAll" /></th>
         <th>Spot ID</th>
         <th>Active</th>
-        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="spotsList">
@@ -34,91 +34,48 @@
   </table>
 
   <script>
+    let currentSpots = [];
+
     async function fetchSpots() {
       try {
         const res = await fetch('/admin/spots');
         if (!res.ok) throw new Error('Unauthorized');
-        const spots = await res.json();
+        currentSpots = await res.json();
         const tbody = document.getElementById('spotsList');
-        if (spots.length === 0) {
+        if (currentSpots.length === 0) {
           tbody.innerHTML = '<tr><td colspan="3">No spots found</td></tr>';
           return;
         }
-        tbody.innerHTML = spots
-          .map(
-            (spot, idx) => `
+
+        tbody.innerHTML = currentSpots.map((spot) => `
           <tr data-id="${spot.id}">
+            <td><input type="checkbox" class="rowCheckbox" /></td>
             <td>${spot.id}</td>
-            <td>
-              <input type="checkbox" class="activeCheckbox" ${
-                spot.active ? 'checked' : ''
-              } />
-            </td>
-            <td>
-              <button class="deleteBtn" style="background:#CE0000;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">
-                Delete
-              </button>
-            </td>
-          </tr>`
-          )
-          .join('');
+            <td>${spot.active ? '✅' : '❌'}</td>
+          </tr>
+        `).join('');
 
-        document.querySelectorAll('.activeCheckbox').forEach((checkbox, i) => {
-          checkbox.addEventListener('change', () => toggleActive(spots[i].id, checkbox.checked));
-        });
-
-        document.querySelectorAll('.deleteBtn').forEach((btn, i) => {
-          btn.addEventListener('click', () => deleteSpot(spots[i].id));
-        });
+        document.getElementById('selectAll').checked = false;
       } catch (err) {
-        document.getElementById('spotsList').innerHTML =
-          '<tr><td colspan="3">Failed to load spots</td></tr>';
-      }
-    }
-
-    async function toggleActive(id, isActive) {
-      try {
-        const res = await fetch(`/admin/spots/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active: isActive }),
-        });
-        if (!res.ok) throw new Error('Failed to update spot');
-      } catch (err) {
-        alert('Error updating spot status');
-        fetchSpots();
-      }
-    }
-
-    async function deleteSpot(id) {
-      if (!confirm(`Delete spot ${id}?`)) return;
-      try {
-        const res = await fetch(`/admin/spots/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Failed to delete spot');
-        fetchSpots();
-      } catch (err) {
-        alert('Error deleting spot');
+        document.getElementById('spotsList').innerHTML = '<tr><td colspan="3">Failed to load spots</td></tr>';
       }
     }
 
     document.getElementById('addSpotForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const newSpotId = document.getElementById('newSpotId').value.trim();
-      if (!newSpotId) return alert('Please enter spot ID');
+      const id = document.getElementById('newSpotId').value.trim();
+      if (!id) return alert('Please enter a spot ID');
       try {
         const res = await fetch('/admin/spots', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: newSpotId }),
+          body: JSON.stringify({ id }),
         });
-        if (!res.ok) {
-          const error = await res.json();
-          alert(error.error || 'Failed to add spot');
-          return;
-        }
+        const data = await res.json();
+        if (!res.ok) return alert(data.error || 'Failed to add');
         document.getElementById('newSpotId').value = '';
         fetchSpots();
-      } catch (err) {
+      } catch {
         alert('Error adding spot');
       }
     });
@@ -127,6 +84,50 @@
       await fetch('/admin/logout', { method: 'POST' });
       window.location.href = '/admin-login.html';
     });
+
+    document.getElementById('selectAll').addEventListener('change', (e) => {
+      document.querySelectorAll('.rowCheckbox').forEach(cb => {
+        cb.checked = e.target.checked;
+      });
+    });
+
+    function getSelectedIds() {
+      const checkboxes = document.querySelectorAll('.rowCheckbox');
+      return Array.from(checkboxes)
+        .map((cb, i) => cb.checked ? currentSpots[i].id : null)
+        .filter(Boolean);
+    }
+
+    async function bulkUpdate(active) {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return alert('No spots selected');
+      const updates = ids.map(id =>
+        fetch(`/admin/spots/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active }),
+        })
+      );
+      await Promise.all(updates);
+      fetchSpots();
+    }
+
+    async function bulkDelete() {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return alert('No spots selected');
+      if (!confirm(`Delete ${ids.length} spot(s)?`)) return;
+      const deletions = ids.map(id =>
+        fetch(`/admin/spots/${id}`, {
+          method: 'DELETE'
+        })
+      );
+      await Promise.all(deletions);
+      fetchSpots();
+    }
+
+    document.getElementById('activateSelected').addEventListener('click', () => bulkUpdate(true));
+    document.getElementById('deactivateSelected').addEventListener('click', () => bulkUpdate(false));
+    document.getElementById('deleteSelected').addEventListener('click', () => bulkDelete());
 
     fetchSpots();
   </script>
