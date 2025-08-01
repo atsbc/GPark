@@ -39,13 +39,13 @@ input, select {
   border: 1.5px solid var(--border-color);
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 input:focus, select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 5px var(--primary-color);
+  box-shadow: 0 0 6px var(--primary-color);
 }
 
 button {
@@ -76,54 +76,6 @@ button:hover, button:focus {
   user-select: none;
 }
 
-/* Table for admin dashboard */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  font-size: 1rem;
-}
-
-thead {
-  background-color: var(--primary-color);
-  color: #fff;
-}
-
-thead th {
-  padding: 0.75rem;
-  text-align: left;
-}
-
-tbody td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* Timer styling */
-.timer {
-  font-weight: 700;
-  color: var(--primary-color-dark);
-  font-size: 0.9rem;
-  user-select: none;
-}
-
-/* Logout button */
-#logoutBtn {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 1rem;
-  transition: background-color 0.3s ease;
-}
-
-#logoutBtn:hover {
-  background-color: var(--primary-color-dark);
-}
-
-/* Responsive */
 @media (max-width: 480px) {
   body {
     margin: 1rem;
