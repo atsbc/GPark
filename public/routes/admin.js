@@ -4,8 +4,10 @@ const fs = require('fs');
 const path = require('path');
 
 const spotsPath = path.join(__dirname, '../data/spots.json');
+const bookingsPath = path.join(__dirname, '../data/bookings.json');
 
 let parkingSpots = [];
+let bookings = [];
 
 // Load or create spots.json
 if (fs.existsSync(spotsPath)) {
@@ -14,10 +16,24 @@ if (fs.existsSync(spotsPath)) {
   fs.writeFileSync(spotsPath, JSON.stringify(parkingSpots, null, 2));
 }
 
-// Save spots helper
+// Load or create bookings.json
+if (fs.existsSync(bookingsPath)) {
+  bookings = require(bookingsPath);
+} else {
+  fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2));
+}
+
+// Helper to save spots
 function saveSpots() {
   fs.writeFileSync(spotsPath, JSON.stringify(parkingSpots, null, 2));
 }
+
+// Helper to save bookings
+function saveBookings() {
+  fs.writeFileSync(bookingsPath, JSON.stringify(bookings, null, 2));
+}
+
+// --- SPOTS ROUTES ---
 
 // Get all spots
 router.get('/spots', (req, res) => {
@@ -87,6 +103,32 @@ router.put('/spots/:id/rates', (req, res) => {
   spot.rates = rates;
   saveSpots();
   res.json({ message: 'Rates updated', spot });
+});
+
+// --- BOOKINGS ROUTES ---
+
+// Get all bookings
+router.get('/bookings', (req, res) => {
+  res.json(bookings);
+});
+
+// Add booking (optional: if you want admin to create bookings)
+router.post('/bookings', (req, res) => {
+  const { parkingSpotId, licensePlate, duration } = req.body;
+  if (!parkingSpotId || !licensePlate || !duration) {
+    return res.status(400).json({ error: 'Missing booking details' });
+  }
+
+  const spot = parkingSpots.find(s => s.id === parkingSpotId);
+  if (!spot || !spot.active) {
+    return res.status(400).json({ error: 'Invalid or inactive parking spot' });
+  }
+
+  const timestamp = Date.now();
+
+  bookings.push({ parkingSpotId, licensePlate, duration, timestamp });
+  saveBookings();
+  res.status(201).json({ message: 'Booking created' });
 });
 
 module.exports = router;
