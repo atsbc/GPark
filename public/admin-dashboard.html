@@ -59,26 +59,27 @@
               <th><input type="checkbox" id="selectAll" /></th>
               <th>Spot ID</th>
               <th>Active</th>
+              <th>Rates</th>
             </tr>
           </thead>
           <tbody id="spotsList">
-            <tr><td colspan="3">Loading...</td></tr>
+            <tr><td colspan="4">Loading...</td></tr>
           </tbody>
         </table>
-
-        <div id="rateModal" class="modal">
-  <div class="modal-content">
-    <h2>Edit Rates for Spot <span id="rateSpotId"></span></h2>
-    <form id="rateForm"></form>
-    <div class="modal-actions">
-      <button type="button" id="saveRatesBtn">Save</button>
-      <button type="button" onclick="closeRateModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
       </section>
     </main>
+  </div>
+
+  <!-- Rate Modal -->
+  <div id="rateModal" class="modal">
+    <div class="modal-content">
+      <h2>Edit Rates for Spot <span id="rateSpotId"></span></h2>
+      <form id="rateForm"></form>
+      <div class="modal-actions">
+        <button type="button" id="saveRatesBtn">Save</button>
+        <button type="button" onclick="closeRateModal()">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <script src="js/admin.js"></script>
