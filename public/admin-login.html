@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPark Admin Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>GPark Admin Login</h1>
+  <form id="loginForm" autocomplete="off">
+    <label for="username">Username:</label>
+    <input id="username" type="text" required />
+
+    <label for="password">Password:</label>
+    <input id="password" type="password" required />
+
+    <button type="submit">Login</button>
+  </form>
+  <div id="message" class="message"></div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    const messageEl = document.getElementById('message');
+    messageEl.textContent = 'Logging in...';
+
+    try {
+      const res = await fetch('/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        messageEl.style.color = 'green';
+        messageEl.textContent = 'Login successful! Redirecting...';
+        setTimeout(() => {
+          window.location.href = '/admin-dashboard.html';
+        }, 1000);
+      } else {
+        messageEl.style.color = 'red';
+        messageEl.textContent = data.error || 'Login failed';
+      }
+    } catch (err) {
+      messageEl.style.color = 'red';
+      messageEl.textContent = 'Error during login';
+    }
+  });
+</script>
+</body>
+</html>
