@@ -2,6 +2,27 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node');
+const fs = require('fs');
+
+const adapter = new JSONFile('db.json');
+const db = new Low(adapter);
+
+async function initDB() {
+  await db.read();
+  db.data ||= { bookings: [], spots: [], timeslots: [] };
+
+  // Initialize 20 parking spots if empty
+  if (db.data.spots.length === 0) {
+    db.data.spots = Array.from({ length: 20 }, (_, i) => ({ id: 10000 + i }));
+  }
+
+  await db.write();
+}
+
+initDB();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
