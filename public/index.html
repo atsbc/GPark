@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GPark - Parking Meter App</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+  label { display: block; margin-top: 15px; }
+  select, input[type="text"], button { width: 100%; padding: 8px; margin-top: 5px; }
+  .message { margin-top: 20px; }
+</style>
+</head>
+<body>
+  <h1>GPark Parking Booking</h1>
+  <form id="bookingForm">
+    <label for="spot">Select Parking Spot (5-digit ID):</label>
+    <select id="spot" required>
+      <option value="">Loading spots...</option>
+    </select>
+
+    <label for="duration">Select Parking Time:</label>
+    <select id="duration" required>
+      <option value="">Select duration</option>
+      <option value="30">30 minutes</option>
+      <option value="45">45 minutes</option>
+      <option value="60">1 hour</option>
+      <option value="120">2 hours</option>
+      <option value="240">4 hours</option>
+      <option value="480">8 hours</option>
+      <option value="720">12 hours</option>
+      <option value="1440">24 hours</option>
+    </select>
+
+    <label for="license">License Plate Number:</label>
+    <input type="text" id="license" placeholder="ABC1234" required pattern="[A-Za-z0-9 ]+" />
+
+    <button type="submit">Book Spot</button>
+  </form>
+
+  <div class="message" id="message"></div>
+
+<script>
+  async function loadSpots() {
+    const spotSelect = document.getElementById('spot');
+    try {
+      const res = await fetch('/api/spots');
+      const spots = await res.json();
+      spotSelect.innerHTML = '<option value="">Select a spot</option>';
+      spots.forEach(spot => {
+        const option = document.createElement('option');
+        option.value = spot;
+        option.textContent = spot;
+        spotSelect.appendChild(option);
+      });
+    } catch (error) {
+      spotSelect.innerHTML = '<option value="">Failed to load spots</option>';
+    }
+  }
+
+  document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const spot = document.getElementById('spot').value;
+    const duration = document.getElementById('duration').value;
+    const license = document.getElementById('license').value.trim();
+
+    const messageEl = document.getElementById('message');
+    messageEl.textContent = 'Submitting booking...';
+
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parkingSpotId: spot, duration, licensePlate: license })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        messageEl.style.color = 'green';
+        messageEl.textContent = `Success! Spot ${data.booking.parkingSpotId} booked for ${data.booking.duration} minutes.`;
+        document.getElementById('bookingForm').reset();
+      } else {
+        messageEl.style.color = 'red';
+        messageEl.textContent = data.error || 'Booking failed';
+      }
+    } catch (err) {
+      messageEl.style.color = 'red';
+      messageEl.textContent = 'Error submitting booking';
+    }
+  });
+
+  loadSpots();
+</script>
+</body>
+</html>
